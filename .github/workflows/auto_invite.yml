@@ -1,0 +1,46 @@
+name: Daily Invite Script (Random Time in Window)
+
+on:
+  schedule:
+    # 每天UTC时间11点、12点、13点、14点触发。
+    # 脚本内部会检查日期，确保每天只执行一次邀请。
+    # 这是最接近“每天11-14点随机一次”的方法，因为每次触发都有机会执行。
+    - cron: '0 11-14 * * *' 
+
+jobs:
+  run_invite_script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository # 步骤1: 检出代码
+      uses: actions/checkout@v2
+
+    - name: Set up Python # 步骤2: 设置Python环境
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies # 步骤3: 安装Python依赖库
+      run: |
+        pip install requests
+
+    - name: Run invite script # 步骤4: 运行Python脚本
+      run: |
+        python invite_script.py
+    
+    # 以下是处理状态持久化的Git操作
+    - name: Commit last run date # 步骤5: 提交last_run_date.txt文件
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add last_run_date.txt
+        # 检查是否有更改需要提交
+        git diff --cached --exit-code || git commit -m "Auto: Update last run date for ${{ github.run_number }}"
+      env:
+        # 使用GITHUB_TOKEN，它具有写入仓库的权限
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+    
+    - name: Push changes # 步骤6: 推送更改到仓库
+      run: git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
