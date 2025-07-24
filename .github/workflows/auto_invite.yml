@@ -32,6 +32,7 @@ jobs:
         pip install requests
 
     - name: Run invite script # 步骤4: 运行Python脚本
+      id: run_script # 给这个步骤一个ID，以便后续步骤引用它的输出或状态
       run: |
         python invite_script.py
     
@@ -42,22 +43,23 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
       
-    - name: Add and Commit last run date # 步骤6: 添加并提交last_run_date.txt文件
-      # 检查 last_run_date.txt 是否有更改，如果有，则添加并提交
-      # 这条命令会在没有更改时安全退出，避免不必要的提交
+    - name: Check for changes and Commit last run date # 步骤6: 检查更改并提交last_run_date.txt文件
+      id: commit_check # 给这个步骤一个ID，以便后续步骤引用它的输出
       run: |
-        if git diff --exit-code last_run_date.txt; then
+        if git diff --quiet last_run_date.txt; then
           echo "No changes to last_run_date.txt. Skipping commit."
+          echo "committed=false" >> $GITHUB_OUTPUT # 设置输出变量
         else
           git add last_run_date.txt
           git commit -m "Auto: Update last run date for ${{ github.run_number }} [skip ci]"
+          echo "committed=true" >> $GITHUB_OUTPUT # 设置输出变量
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
     
     - name: Push changes # 步骤7: 推送更改到仓库
-      # 仅当有新的提交时才推送
+      # 仅当上一步成功且确实有新提交时才推送
       run: git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      if: success() && steps.add_commit.outputs.committed == 'true' # 仅当上一步成功且有提交时才推送
+      if: success() && steps.commit_check.outputs.committed == 'true'
