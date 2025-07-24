@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 import time
 import random
@@ -6,18 +7,15 @@ import datetime
 import os
 import sys
 
-# --- ÅäÖÃ ---
-bj = '8V1L2Z'  # ÄãµÄÑûÇëÂë
+# --- é…ç½® ---
+bj = '8V1L2Z'  # ä½ çš„é‚€è¯·ç 
 MIN_INVITES = 1
 MAX_INVITES = 5
 
-# ÓÃÓÚ¼ÇÂ¼ÉÏ´ÎÔËĞĞÈÕÆÚµÄÎÄ¼şÂ·¾¶£¬½«ÔÚGitHub Actions¹¤×÷Á÷ÖĞ´¦Àí
-# ×¢Òâ£ºÕâ¸öÎÄ¼şĞèÒª±»Ìá½»»Ø²Ö¿â£¬Ã¿´ÎÔËĞĞ¶¼»áÓĞĞÂµÄÌá½»¡£
-# »òÕß£¬¿ÉÒÔ¿¼ÂÇÊ¹ÓÃGitHub Gist»òActionsµÄartifactÀ´´«µİ×´Ì¬£¬µ«ÄÇ»á¸ü¸´ÔÓ¡£
-# ÕâÀï²ÉÓÃÒ»¸ö¼òµ¥µÄ·½·¨£¬µ«»áµ¼ÖÂÌá½»ÀúÊ·ÖĞÓĞÒ»Ğ©×Ô¶¯Ìá½»¡£
+# ç”¨äºè®°å½•ä¸Šæ¬¡è¿è¡Œæ—¥æœŸçš„æ–‡ä»¶è·¯å¾„
 LAST_RUN_FILE = "last_run_date.txt"
 
-# --- ¸¨Öúº¯Êı ---
+# --- è¾…åŠ©å‡½æ•° ---
 def ranEmail():
     random_str = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(random.randint(5, 8)))
     email = random_str + "@gmail.com"
@@ -46,7 +44,10 @@ def perform_invitation():
     t = str(int(time.time() * 1000))
     device_id_val = ranDeviceId()
 
-    # ÔÙ´ÎÇ¿µ÷£ºÇëÎñ±ØºË¶ÔÕıÈ·µÄ×¢²á½Ó¿ÚURL£¡
+    # !!! é‡è¦ï¼šè¯·åŠ¡å¿…æ ¸å¯¹æ­£ç¡®çš„æ³¨å†Œæ¥å£URLï¼
+    # ä¹‹å‰æ˜¯ https://sm01.googls.net/account/register
+    # ç°åœ¨æ˜¯ https://co01.jurasic.net/account/register
+    # å¦‚æœä¸¤è€…éƒ½æ— æ•ˆï¼Œä½ éœ€è¦æ‰¾åˆ°å®é™…å¯ç”¨çš„APIæ¥å£
     url = 'https://co01.jurasic.net/account/register?' \
                'platform=2&api_version=14&' \
                'app_version=1.45&lang=zh&_key=&' \
@@ -62,7 +63,7 @@ def perform_invitation():
     header = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': str(len(data)),
-        'Host': 'co01.jurasic.net', # ÓëURLÖ÷»ú±£³ÖÒ»ÖÂ
+        'Host': 'co01.jurasic.net', # ä¸URLä¸»æœºä¿æŒä¸€è‡´
         'Connection': 'Keep-Alive',
         'Accept-Encoding': 'gzip',
         'User-Agent': 'okhttp/3.5.0'
@@ -71,7 +72,7 @@ def perform_invitation():
     try:
         response = requests.post(url=url, data=data, headers=header, timeout=10)
         print(f"Request to {url}")
-        # print(f"Data: {data}") # Îª±ÜÃâÈÕÖ¾¹ı³¤£¬¿ÉÒÔ×¢ÊÍµôÃô¸ĞÊı¾İ
+        # print(f"Data: {data}") # ä¸ºé¿å…æ—¥å¿—è¿‡é•¿ï¼Œå¯ä»¥æ³¨é‡Šæ‰æ•æ„Ÿæ•°æ®
         print(f"Headers: {header}")
         print("Status Code:", response.status_code)
         print("Response Text:", response.text)
@@ -80,12 +81,12 @@ def perform_invitation():
         print(f"An error occurred during invitation: {e}")
         return False
 
-# --- Ö÷Âß¼­ ---
+# --- ä¸»é€»è¾‘ ---
 if __name__ == '__main__':
     today = datetime.date.today()
     last_run_date = None
 
-    # ´Ó LAST_RUN_FILE ¶ÁÈ¡ÉÏ´ÎÔËĞĞÈÕÆÚ
+    # ä» LAST_RUN_FILE è¯»å–ä¸Šæ¬¡è¿è¡Œæ—¥æœŸ
     if os.path.exists(LAST_RUN_FILE):
         with open(LAST_RUN_FILE, 'r') as f:
             try:
@@ -96,16 +97,10 @@ if __name__ == '__main__':
     
     if last_run_date == today:
         print(f"Script already successfully ran today ({today}). Exiting.")
-        sys.exit(0) # ³É¹¦ÍË³ö£¬²»´¥·¢ºóĞøÌá½»
+        sys.exit(0) # æˆåŠŸé€€å‡ºï¼Œä¸è§¦å‘åç»­æäº¤
     else:
-        # Èç¹ûÎ´ÔËĞĞ¹ı»òÈÕÆÚ²»Æ¥Åä£¬ÔòÖ´ĞĞºËĞÄÑûÇëÂß¼­
+        # å¦‚æœæœªè¿è¡Œè¿‡æˆ–æ—¥æœŸä¸åŒ¹é…ï¼Œåˆ™æ‰§è¡Œæ ¸å¿ƒé‚€è¯·é€»è¾‘
         print(f"Script has not run today or last run date is old. Running for {today}...")
-        
-        # Ëæ»úÑÓ³Ù£¬Ä£ÄâÔÚ11µãµ½14µãÕâ¸ö´°¿ÚÄÚµÄËæ»úÊ±¼äÆô¶¯
-        # Õâ¸öÑÓ³ÙÊÇÔÚGitHub Actions¹¤×÷Á÷Æô¶¯ºó·¢ÉúµÄ£¬
-        # ËùÒÔ¼´Ê¹¹¤×÷Á÷ÔÚ11µã´¥·¢£¬½Å±¾Ò²¿ÉÄÜÔÚ11µãX·ÖÖ´ĞĞ¡£
-        # µ«ÎÒÃÇ»¹ĞèÒªÈ·±£ËüÔÚ14µãÖ®Ç°Íê³É¡£
-        # Êµ¼ÊµÄËæ»úÊ±¼ä¿ØÖÆÖ÷ÒªÒÀ¿¿ cron ±í´ïÊ½µÄÆµÂÊºÍ½Å±¾µÄ¶ÌÊ±ÑÓ³Ù¡£
         
         times_to_invite = random.randint(MIN_INVITES, MAX_INVITES)
         print(f"Script will attempt to invite {times_to_invite} users.")
@@ -116,19 +111,18 @@ if __name__ == '__main__':
             if not perform_invitation():
                 all_successful = False
             
-            # Ã¿´ÎÑûÇëÖ®¼äÔö¼ÓËæ»úÑÓ³Ù
+            # æ¯æ¬¡é‚€è¯·ä¹‹é—´å¢åŠ éšæœºå»¶è¿Ÿ
             sleep_time = random.uniform(2, 5)
             print(f"Waiting for {sleep_time:.2f} seconds before next invitation...")
             time.sleep(sleep_time)
 
         print(f"\nFinished trying to invite {times_to_invite} users.")
         
-        # Ö»ÓĞµ±ËùÓĞÑûÇë³¢ÊÔ¶¼Íê³É£¨ÎŞÂÛ³É¹¦Óë·ñ£©£¬²Å¸üĞÂÈÕÆÚÎÄ¼ş
-        # ÕâÈ·±£ÁËÈç¹û½Å±¾ÌáÇ°±ÀÀ££¬²»»á´íÎóµØ±ê¼ÇÎªÒÑÔËĞĞ¡£
+        # åªæœ‰å½“æ‰€æœ‰é‚€è¯·å°è¯•éƒ½å®Œæˆï¼ˆæ— è®ºæˆåŠŸä¸å¦ï¼‰ï¼Œæ‰æ›´æ–°æ—¥æœŸæ–‡ä»¶
         with open(LAST_RUN_FILE, 'w') as f:
             f.write(str(today))
         print(f"Recorded last run date as {today}.")
         
-        # Èç¹ûÓĞÈÎºÎÑûÇëÊ§°Ü£¬¿ÉÒÔ¿¼ÂÇ·ÇÁãÍË³öÂë£¬ÈÃGitHub Actions±ê¼ÇÎªÊ§°Ü
+        # å¦‚æœæœ‰ä»»ä½•é‚€è¯·å¤±è´¥ï¼Œå¯ä»¥è€ƒè™‘éé›¶é€€å‡ºç ï¼Œè®©GitHub Actionsæ ‡è®°ä¸ºå¤±è´¥
         if not all_successful:
             sys.exit(1)
