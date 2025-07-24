@@ -1,10 +1,17 @@
-name: Daily Invite Script (Random Time in Window)
+name: Daily Invite Script (Manual & Scheduled)
 
 on:
+  # 1. 允许手动触发工作流
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger (optional)'
+        required: false
+        default: 'Manual run'
+
+  # 2. 每天UTC时间11点、12点、13点、14点自动触发
+  # 脚本内部会检查日期，确保每天只执行一次核心邀请逻辑。
   schedule:
-    # 每天UTC时间11点、12点、13点、14点触发。
-    # 脚本内部会检查日期，确保每天只执行一次邀请。
-    # 这是最接近“每天11-14点随机一次”的方法，因为每次触发都有机会执行。
     - cron: '0 11-14 * * *' 
 
 jobs:
@@ -29,18 +36,28 @@ jobs:
         python invite_script.py
     
     # 以下是处理状态持久化的Git操作
-    - name: Commit last run date # 步骤5: 提交last_run_date.txt文件
+    # 确保脚本能够更新 last_run_date.txt 并将其提交回仓库
+    - name: Configure Git for commit # 步骤5: 配置Git用户信息
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add last_run_date.txt
-        # 检查是否有更改需要提交
-        git diff --cached --exit-code || git commit -m "Auto: Update last run date for ${{ github.run_number }}"
+      
+    - name: Add and Commit last run date # 步骤6: 添加并提交last_run_date.txt文件
+      # 检查 last_run_date.txt 是否有更改，如果有，则添加并提交
+      # 这条命令会在没有更改时安全退出，避免不必要的提交
+      run: |
+        if git diff --exit-code last_run_date.txt; then
+          echo "No changes to last_run_date.txt. Skipping commit."
+        else
+          git add last_run_date.txt
+          git commit -m "Auto: Update last run date for ${{ github.run_number }} [skip ci]"
+        fi
       env:
-        # 使用GITHUB_TOKEN，它具有写入仓库的权限
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
     
-    - name: Push changes # 步骤6: 推送更改到仓库
+    - name: Push changes # 步骤7: 推送更改到仓库
+      # 仅当有新的提交时才推送
       run: git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: success() && steps.add_commit.outputs.committed == 'true' # 仅当上一步成功且有提交时才推送
