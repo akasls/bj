@@ -8,9 +8,9 @@ import os
 import sys
 
 # --- 配置 ---
-bj = '8V1L2Z'  # 你的邀请码
+bj = '8V1L2Z'  # <<< 你的邀请码已更新为 8V1L2Z >>>
 MIN_INVITES = 1
-MAX_INVITES = 5
+MAX_INVITES = 5 # <<< 每次运行随机邀请1到5人 >>>
 
 # 用于记录上次运行日期的文件路径
 LAST_RUN_FILE = "last_run_date.txt"
@@ -22,6 +22,7 @@ def ranEmail():
     return email
 
 def ranDeviceId():
+    # 生成随机设备ID，长度与示例device_id一致
     device_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(len("rk_dbf7a4a5b8294d988ea07ccd1b06e82b")))
     return device_id
 
@@ -37,17 +38,19 @@ def perform_invitation():
                       "google-pixel","google-pixel xl","google-pixel 2","google-pixel 2 xl","google-pixel 3"]
     Phone = random.choice(Phone_name)
 
-    email_address = ranEmail()
+    email_address = ranEmail() # 使用 ranEmail 函数生成更标准的邮箱
 
-    data = 'passwd=e10adc3949ba59abbe56e057f20f883e&email=' + email_address + '&invite_code=' + bj
+    data = 'passwd=e10adc3949ba59abbe56e057f20f883e&email=' + email_address + '&invite_code=' + bj # 注意这里的 email 变量
 
+    # 获取时间戳
     t = str(int(time.time() * 1000))
-    device_id_val = ranDeviceId()
+    # 随机获取id
+    device_id_val = ranDeviceId() # 使用 ranDeviceId 函数生成
 
     # !!! 重要：请务必核对正确的注册接口URL！
-    # 之前是 https://sm01.googls.net/account/register
-    # 现在是 https://co01.jurasic.net/account/register
-    # 如果两者都无效，你需要找到实际可用的API接口
+    # 你上次的错误信息显示 https://co01.jurasic.net 504 Gateway Time-out
+    # 这意味着这个URL可能也失效了。
+    # 你需要通过F12抓包找到当前最新的、有效的注册API接口URL。
     url = 'https://co01.jurasic.net/account/register?' \
                'platform=2&api_version=14&' \
                'app_version=1.45&lang=zh&_key=&' \
@@ -62,8 +65,8 @@ def perform_invitation():
 
     header = {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': str(len(data)),
-        'Host': 'co01.jurasic.net', # 与URL主机保持一致
+        'Content-Length': str(len(data)), # <<< 动态计算 Content-Length >>>
+        'Host': 'co01.jurasic.net', # <<< 与URL主机保持一致 >>>
         'Connection': 'Keep-Alive',
         'Accept-Encoding': 'gzip',
         'User-Agent': 'okhttp/3.5.0'
@@ -76,10 +79,10 @@ def perform_invitation():
         print(f"Headers: {header}")
         print("Status Code:", response.status_code)
         print("Response Text:", response.text)
-        return True
+        return True # 返回成功状态
     except requests.exceptions.RequestException as e:
         print(f"An error occurred during invitation: {e}")
-        return False
+        return False # 返回失败状态
 
 # --- 主逻辑 ---
 if __name__ == '__main__':
@@ -95,6 +98,7 @@ if __name__ == '__main__':
             except ValueError:
                 print("Could not parse last run date from file. Will proceed with script.")
     
+    # 检查今天是否已运行
     if last_run_date == today:
         print(f"Script already successfully ran today ({today}). Exiting.")
         sys.exit(0) # 成功退出，不触发后续提交
@@ -105,10 +109,10 @@ if __name__ == '__main__':
         times_to_invite = random.randint(MIN_INVITES, MAX_INVITES)
         print(f"Script will attempt to invite {times_to_invite} users.")
         
-        all_successful = True
+        all_successful = True # 标记所有邀请是否都成功
         for i in range(1, times_to_invite + 1):
             print(f"\nAttempting invitation {i} of {times_to_invite}...")
-            if not perform_invitation():
+            if not perform_invitation(): # 如果任一邀请失败
                 all_successful = False
             
             # 每次邀请之间增加随机延迟
@@ -118,11 +122,12 @@ if __name__ == '__main__':
 
         print(f"\nFinished trying to invite {times_to_invite} users.")
         
-        # 只有当所有邀请尝试都完成（无论成功与否），才更新日期文件
+        # 只有当所有邀请尝试都完成，才更新日期文件
+        # 这确保了如果脚本提前崩溃，不会错误地标记为已运行。
         with open(LAST_RUN_FILE, 'w') as f:
             f.write(str(today))
         print(f"Recorded last run date as {today}.")
         
         # 如果有任何邀请失败，可以考虑非零退出码，让GitHub Actions标记为失败
         if not all_successful:
-            sys.exit(1)
+            sys.exit(1) # 表示脚本执行有部分失败
