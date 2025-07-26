@@ -1,7 +1,6 @@
 name: Daily Invite Script (Manual & Scheduled)
 
 on:
-  # 1. 允许手动触发工作流
   workflow_dispatch:
     inputs:
       reason:
@@ -9,57 +8,27 @@ on:
         required: false
         default: 'Manual run'
 
-  # 2. 每天UTC时间11点、12点、13点、14点自动触发
-  # 脚本内部会检查日期，确保每天只执行一次核心邀请逻辑。
   schedule:
-    - cron: '0 11-14 * * *' 
+    - cron: '0 0 * * *' # 每天UTC时间0点（北京时间8点）执行一次
 
 jobs:
   run_invite_script:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository # 步骤1: 检出代码
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python # 步骤2: 设置Python环境
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
 
-    - name: Install dependencies # 步骤3: 安装Python依赖库
+    - name: Install dependencies
       run: |
         pip install requests
 
-    - name: Run invite script # 步骤4: 运行Python脚本
-      id: run_script # 给这个步骤一个ID，以便后续步骤引用它的输出或状态
+    - name: Run invite script
+      id: run_script
       run: |
         python invite_script.py
-    
-    # 以下是处理状态持久化的Git操作
-    # 确保脚本能够更新 last_run_date.txt 并将其提交回仓库
-    - name: Configure Git for commit # 步骤5: 配置Git用户信息
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-      
-    - name: Check for changes and Commit last run date # 步骤6: 检查更改并提交last_run_date.txt文件
-      id: commit_check # 给这个步骤一个ID，以便后续步骤引用它的输出
-      run: |
-        if git diff --quiet last_run_date.txt; then
-          echo "No changes to last_run_date.txt. Skipping commit."
-          echo "committed=false" >> $GITHUB_OUTPUT # 设置输出变量
-        else
-          git add last_run_date.txt
-          git commit -m "Auto: Update last run date for ${{ github.run_number }} [skip ci]"
-          echo "committed=true" >> $GITHUB_OUTPUT # 设置输出变量
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-    
-    - name: Push changes # 步骤7: 推送更改到仓库
-      # 仅当上一步成功且确实有新提交时才推送
-      run: git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      if: success() && steps.commit_check.outputs.committed == 'true'
