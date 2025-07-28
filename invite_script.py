@@ -18,6 +18,8 @@ def ranDeviceId():
 INVITE_CODES = [
     '8V1L2Z',
     'T9LVRV', # 你的第二个邀请码
+    '9ZDH8', 
+    'KLHX7', 
     # 可以继续添加更多邀请码
 ]
 
