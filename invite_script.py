@@ -20,6 +20,14 @@ INVITE_CODES = [
     'T9LVRV', # 你的第二个邀请码
     '9ZDH8', 
     'KLHX7', 
+    'xw3gs', 
+    '8AAR3Q', 
+    'MNNL6', 
+    '1H2MZ', 
+    '5N6A8', 
+    'KA4B8', 
+    'ADWPS', 
+    'AT5EN', 
     # 可以继续添加更多邀请码
 ]
 
